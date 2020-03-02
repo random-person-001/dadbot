@@ -19,6 +19,13 @@ def dis():
 class Core(commands.Cog):
     """Core commands, for updating source code and reloading cogs"""
 
+    @commands.cooldown(rate=1, per=1)
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def say(self, ctx, channel: discord.TextChannel, message: str):
+        """Speak thy mind!"""
+        await channel.send(message)
+
     @commands.cooldown(rate=1, per=7)
     @commands.command(hidden=True)
     async def murder(self, ctx):
