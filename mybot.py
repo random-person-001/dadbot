@@ -22,9 +22,9 @@ class Core(commands.Cog):
     @commands.cooldown(rate=1, per=1)
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def say(self, ctx, channel: discord.TextChannel, *, message: str):
+    async def say(self, ctx, channel_id: int, *, message: str):
         """Speak thy mind!"""
-        await channel.send(message)
+        await ctx.bot.get_channel(channel_id).send(message)
 
     @commands.cooldown(rate=1, per=7)
     @commands.command(hidden=True)
