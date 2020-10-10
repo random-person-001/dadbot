@@ -27,8 +27,9 @@ class Dad(commands.Cog):
         if msg.author.bot:
             return
         regex = r'\w+ is (\w+)'
-        wordy = re.search(regex, msg.content).group(1)
-        await msg.channel.send(f'Your mother is {wordy}')
+        wordy = re.search(regex, msg.content)
+        if wordy:
+            await msg.channel.send(f'Your mother is {wordy.group(1)}')
 
     async def hi_im_dad(self, msg):
         content = msg.content.lower()
