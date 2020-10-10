@@ -1,4 +1,5 @@
 import random
+import re
 
 import discord
 from discord.ext import commands
@@ -22,6 +23,13 @@ class Dad(commands.Cog):
         if msg.content.lower().startswith('rt') and not msg.author.bot:
             await msg.channel.send('rt ' + msg.content)
 
+    async def ur_mom_is(self, msg):
+        if msg.author.bot:
+            return
+        regex = r'\w+ is (\w+)'
+        wordy = re.search(regex, msg.content).group(1)
+        await msg.channel.send(f'Your mother is {wordy}')
+
     async def hi_im_dad(self, msg):
         content = msg.content.lower()
         if len(content) > 4 and any(punct == content[-1] for punct in ('.', '?', '!', ',')):
@@ -39,6 +47,15 @@ class Dad(commands.Cog):
         await self.oh_no(msg)
         await self.rt(msg)
         await self.hi_im_dad(msg)
+        await self.ur_mom_is(msg)
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def say_img(self, ctx, chan_id: int, *, msg=None):
+        """upload an image directly"""
+        chan = ctx.bot.get_channel(chan_id)
+        img = await ctx.message.attachments[0].to_file()
+        await chan.send(content=msg, file=img)
 
 
 def setup(bot):

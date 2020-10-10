@@ -159,7 +159,9 @@ class MyBot(commands.Bot):
         if not config:
             return
         self.config = config  # top level config (like api keys)
-        super().__init__(command_prefix=config['prefix'])
+        intents = discord.Intents.default()
+        intents.members = True
+        super().__init__(command_prefix=config['prefix'], intents=intents)
         self.add_cog(Core())
 
         for extension in config['extensions']:
@@ -171,4 +173,5 @@ class MyBot(commands.Bot):
 
     def startup(self):
         """Start the bot.  Blocking!"""
+        print(discord.__version__)
         self.run(self.config['token'])
