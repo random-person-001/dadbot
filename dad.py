@@ -26,7 +26,7 @@ class Dad(commands.Cog):
     async def ur_mom_is(self, msg):
         if msg.author.bot:
             return
-        regex = r'\w+ is (\w+)'
+        regex = r'\w+ is (.+)'
         wordy = re.search(regex, msg.content)
         if wordy:
             await msg.channel.send(f'Your mother is {wordy.group(1)}')
