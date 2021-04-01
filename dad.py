@@ -1,5 +1,6 @@
 import random
 import re
+import time
 
 import discord
 from discord.ext import commands
@@ -45,10 +46,12 @@ class Dad(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
-        await self.oh_no(msg)
-        await self.rt(msg)
-        await self.hi_im_dad(msg)
-        await self.ur_mom_is(msg)
+        now_minutes = int(time.time() / 60)
+        if now_minutes % 10 >= 5:
+            await self.rt(msg)
+            await self.oh_no(msg)
+            await self.hi_im_dad(msg)
+            await self.ur_mom_is(msg)
 
     @commands.command(hidden=True)
     @commands.is_owner()
