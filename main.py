@@ -17,8 +17,8 @@ def setup_logging():
 
 def prep():
     """Make sure the environment and config stuff is set up right, giving hopefully helpful messages if not"""
-    if discord.__version__[0] != '1':  # async is about 0.16, rewrite is 1.0+
-        print("Looks like you're using the old async discord.py library. This is written in rewrite. "
+    if discord.__version__[0] == '1':  # async is about 0.16, rewrite is 1.0+
+        print("Looks like you're using the older discord.py library. This is written in v2. "
               "You should really run this with pipenv instead of on your system environment... see the readme.md")
         return
     try:

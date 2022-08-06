@@ -136,7 +136,7 @@ class Core(commands.Cog):
             await ctx.send('Running `pipenv install`, please hold...')
             # Note: when tested in the wild, the bot seemed to be restarted by systemd hereish
             res = subprocess.run(['pipenv', 'install'])
-            if res.returncode is not 0:
+            if res.returncode != 0:
                 await ctx.send(
                     'Uh oh, found an error while running `pipenv install`.  Time for you to get on fixing it.')
                 return
@@ -159,17 +159,28 @@ class MyBot(commands.Bot):
         if not config:
             return
         self.config = config  # top level config (like api keys)
-        intents = discord.Intents.default()
-        intents.members = True
+        intents = discord.Intents.all()
         super().__init__(command_prefix=config['prefix'], intents=intents)
-        self.add_cog(Core())
 
-        for extension in config['extensions']:
+    async def setup_hook(self) -> None:
+        # We need an `discord.app_commands.CommandTree` instance
+        # to register application commands (slash commands in this case)
+        await self.add_cog(Core())
+
+        for extension in self.config['extensions']:
             try:
-                self.load_extension(extension)
+                await self.load_extension(extension)
             except Exception as e:
                 exc = '{}: {}'.format(type(e).__name__, e)
                 print('Failed to load extension {}\n{}'.format(extension, exc))
+
+        # todo: database init here as well
+
+        # Sync the application command with Discord.
+        TEST_GUILD = discord.Object(325354209673216010)
+        self.tree.copy_global_to(guild=TEST_GUILD)
+        await self.tree.sync(guild=TEST_GUILD)
+        print("yeet")
 
     def startup(self):
         """Start the bot.  Blocking!"""

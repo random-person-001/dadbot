@@ -1,10 +1,5 @@
 import asyncio
-import random
-import re
-import time
-import sqlite3
 
-import discord
 from discord.ext import commands
 
 """
@@ -41,7 +36,7 @@ class Triggered(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        # todo: set db connection
+        # db connection should be inherited from the setup_hook in other code.
 
     """Show info about a trigger"""
 
@@ -117,5 +112,5 @@ class Triggered(commands.Cog):
         await ctx.send("uh yeah this works ig...")
 
 
-def setup(bot):
-    bot.add_cog(Triggered(bot))
+async def setup(bot):
+    await bot.add_cog(Triggered(bot))

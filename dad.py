@@ -62,5 +62,5 @@ class Dad(commands.Cog):
         await chan.send(content=msg, file=img)
 
 
-def setup(bot):
-    bot.add_cog(Dad(bot))
+async def setup(bot):
+    await bot.add_cog(Dad(bot))
