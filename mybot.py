@@ -1,5 +1,6 @@
 import random
 import re
+import sqlite3
 import subprocess
 
 import discord
@@ -158,6 +159,7 @@ class MyBot(commands.Bot):
     def __init__(self, config):
         if not config:
             return
+        self.con = None  # database connection
         self.config = config  # top level config (like api keys)
         intents = discord.Intents.all()
         super().__init__(command_prefix=config['prefix'], intents=intents)
@@ -174,7 +176,37 @@ class MyBot(commands.Bot):
                 exc = '{}: {}'.format(type(e).__name__, e)
                 print('Failed to load extension {}\n{}'.format(extension, exc))
 
-        # todo: database init here as well
+        # Database init
+        self.con = sqlite3.connect("triggers.db")
+        s = """
+        CREATE TABLE IF NOT EXISTS outputs 
+            (output_id INTEGER PRIMARY KEY ASC, 
+            trigger_id INTEGER,             # which trigger this corresponds to
+            string TEXT,                    # what text to output (usually a link/url)
+            weight INTEGER DEFAULT 1);      # weight to attach to this output. Allows some outputs to be sent more often than others.
+            
+        CREATE TABLE IF NOT EXISTS inputs 
+            (input_id INTEGER PRIMARY KEY ASC, 
+            trigger_id INTEGER,             # which trigger this corresponds to
+            string TEXT,                    # what string to match against to run the trigger
+            regex INTEGER DEFAULT 0,          # bool, whether to treat the trigger strings as regex
+            case_sensitive INTEGER DEFAULT 0);# bool, whether to only match same-case with the trigger strings (if not regex)
+            
+        CREATE TABLE IF NOT EXISTS main 
+            (trigger_id INTEGER PRIMARY KEY ASC, 
+            name TEXT UNIQUE,                 # human readable reference name for this entry
+            popularity INTEGER DEFAULT 0);    # times this has been triggered
+        """
+        # Strip comments out
+        stripped = ""
+        for line in s.splitlines():
+            i = line.find("#")
+            if i:
+                stripped += line[:i] + "\n"
+            else:
+                stripped += line + "\n"
+        self.con.executescript(stripped)
+        self.con.commit()
 
         # Sync the application command with Discord.
         TEST_GUILD = discord.Object(325354209673216010)
