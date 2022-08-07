@@ -1,52 +1,9 @@
-import traceback
-
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-
-def add_to_db(db, name: str, trigger: str, url: str):
-    db.execute("INSERT INTO MAIN(name) VALUES (?)", (name,))
-    trigger_id = db.execute("SELECT trigger_id FROM main WHERE name = ?", (name,)).fetchone()[0]
-    db.execute("INSERT INTO OUTPUTS(trigger_id, string) VALUES (?, ?)", (trigger_id, url))
-    db.execute("INSERT INTO INPUTS(trigger_id, string) VALUES (?, ?)", (trigger_id, trigger))
-    db.commit()
-
-
-class AddTriggerModal(discord.ui.Modal):
-    # Our modal classes MUST subclass `discord.ui.Modal`,
-    # but the title can be whatever you want.
-
-    def __init__(self, db, *, title: str = 'Create New Trigger'):
-        super().__init__(title=title)
-        self.conn = db
-
-    trigger = discord.ui.TextInput(
-        label='Trigger Text',
-        placeholder='What makes dad say this...',
-    )
-
-    name = discord.ui.TextInput(
-        label='Human Name',
-        placeholder='What should we refer to this as?',
-    )
-
-    url = discord.ui.TextInput(
-        label='URL',
-        placeholder='Paste those goodies here!',
-    )
-
-    async def on_submit(self, interaction: discord.Interaction):
-        add_to_db(self.conn, str(self.name), str(self.trigger), str(self.url))
-        await interaction.response.send_message(
-            f'Added to database! {self.name} | {self.trigger} | <{self.url}>!', ephemeral=False)
-
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
-
-        # Make sure we know what the error actually is
-        # traceback.print_tb(error.__traceback__)
-        traceback.print_exc()
+import db
+import modals
 
 
 class Sandy(commands.Cog):
@@ -58,7 +15,32 @@ class Sandy(commands.Cog):
         # Send the modal with an instance of our `Feedback` class
         # Since modals require an interaction, they cannot be done as a response to a text command.
         # They can only be done as a response to either an application command or a button press.
-        await interaction.response.send_modal(AddTriggerModal(self.bot.con))
+        await interaction.response.send_modal(modals.AddTriggerModal(self.bot.con))
+
+    @app_commands.command(name="viewtrigger", description="See what's up with a trigger yo")
+    @app_commands.describe(query="Which trigger to look up")
+    async def view_trigger(self, interaction: discord.Interaction, query: str):
+        query = query.lower()  # we enforce a naming convention when creating new. Follow that here.
+        trigger = db.fetch_from_db(self.bot.con, query)
+        if not trigger:
+            await interaction.response.send_message(f"No trigger with name `{query}` found. :(")
+            return
+        e = discord.Embed(color=0x8b785b, title=query)  # title
+        e.add_field(name="Times triggered", value=trigger.popularity)
+        e.add_field(name='Internal ID', value=trigger.trigger_id)
+
+        for i in trigger.inputs:
+            e.add_field(name="Triggered By", value=i.string)
+            if i.regex:
+                e.add_field(name="Is a regex match", value="Yup!")
+            else:
+                e.add_field(name="Is case sensitive", value="Yup!" if i.case_sensitive else "Nope!")
+
+        for o in trigger.outputs:
+            e.add_field(name="Output", value=o.string)
+            if len(trigger.outputs) > 1:
+                e.add_field(name="Relative weight", value=o.weight)
+        await interaction.response.send_message(embed=e)
 
 
 async def setup(bot):

@@ -2,64 +2,6 @@ import asyncio
 
 from discord.ext import commands
 
-"""
-DB SCHEMA
-
-The text of every message is checked against the INPUTS table. If any matches are found, 
-the trigger_id is dug up. The popularity field is incremented, and an appropriate output
-is chosen and sent.
-
-======= TABLE OUTPUTS ========
-PRIMARY KEY INT output_id - internal use for this entry
-INT trigger_id - which trigger this corresponds to
-TEXT string - what text to output
-INT weight - an int weight to attach to this output. Allows some outputs to be sent more often than others.
-
-======= TABLE INPUTS =========
-PRIMARY KEY INT input_id - internal use for this entry
-INT trigger_id - which trigger this corresponds to
-STRING text - what text input
-BOOL regex DEFAULT FALSE - whether to treat the trigger strings as regex
-BOOL case_sensitive DEFAULT FALSE - whether to only match same-case with the trigger strings (if not regex)
-
-======= TABLE MAIN =========
-PRIMARY KEY INT trigger_id - internal use for this entry
-STRING name - human readable reference name for this entry
-INT popularity DEFAULT 0 - times this has been triggered
-
-
-
-
-CREATE TABLE IF NOT EXISTS outputs 
-    (output_id INTEGER PRIMARY KEY, 
-    trigger_id INTEGER,             # which trigger this corresponds to
-    string TEXT,                    # what text to output (usually a link/url)
-    weight INTEGER DEFAULT 1)       # weight to attach to this output. Allows some outputs to be sent more often than others.
-    
-CREATE TABLE IF NOT EXISTS inputs 
-    (input_id INTEGER PRIMARY KEY, 
-    trigger_id INTEGER,             # which trigger this corresponds to
-    string TEXT,                    # what string to match against to run the trigger
-    regex INTEGER DEFAULT 0,          # bool, whether to treat the trigger strings as regex
-    case_sensitive INTEGER DEFAULT 0) # bool, whether to only match same-case with the trigger strings (if not regex)
-    
-CREATE TABLE IF NOT EXISTS main 
-    (trigger_id INTEGER PRIMARY KEY, 
-    name TEXT,                        # human readable reference name for this entry
-    popularity INTEGER DEFAULT 0)     # times this has been triggered
-    
-
-python      sqlite type
--------------------------
-int         INTEGER
-str         TEXT
-None        NULL
-float       REAL
-bytes       BLOB
-
-
-"""
-
 """Woo"""
 
 

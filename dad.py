@@ -5,6 +5,10 @@ import time
 import discord
 from discord.ext import commands
 
+import db
+
+WORK_EVERY_TIME = True  # If false, will only sometimes respond with Hi, XX, I'm dad!
+
 
 class Dad(commands.Cog):
 
@@ -44,14 +48,22 @@ class Dad(commands.Cog):
                 else:
                     await msg.channel.send(f"Hi {content[len(im):]}, I'm dad")
 
+    async def check_specials(self, msg):
+        await self.rt(msg)
+        await self.oh_no(msg)
+        await self.hi_im_dad(msg)
+        await self.ur_mom_is(msg)
+
     @commands.Cog.listener()
     async def on_message(self, msg):
-        now_minutes = int(time.time() / 60)
-        if now_minutes % 10 >= 5:
-            await self.rt(msg)
-            await self.oh_no(msg)
-            await self.hi_im_dad(msg)
-            await self.ur_mom_is(msg)
+        if WORK_EVERY_TIME:
+            await self.check_specials(msg)
+        else:
+            now_minutes = int(time.time() / 60)
+            if now_minutes % 10 >= 5:
+                await self.check_specials(msg)
+        for trigger_output in db.get_trigger_outputs_for_msg(self.bot.con, msg.content):
+            await msg.channel.send(trigger_output)
 
     @commands.command(hidden=True)
     @commands.is_owner()
