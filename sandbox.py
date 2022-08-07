@@ -6,19 +6,35 @@ import db
 import modals
 
 
-class Sandy(commands.Cog):
-    def __init__(self, bot):
+class Sandy(commands.GroupCog, name="trigger"):
+    def __init__(self, bot) -> None:
         self.bot = bot
+        super().__init__()
 
-    @app_commands.command(name="newtrigger", description="Create new trigger")
+    @app_commands.command(name="list", description="View all triggers")
+    async def all_triggers(self, interaction: discord.Interaction):
+        names = db.get_all_trigger_names(self.bot.con)
+        await interaction.response.send_message(f"There are {len(names)} triggers registered:\n\n" + "\n".join(names))
+
+    @app_commands.command(name="delete", description="Delete a trigger")
+    @app_commands.describe(name="Which trigger to delete")
+    async def delete_trigger(self, interaction: discord.Interaction, name: str):
+        await self.view_trigger(interaction, name)
+        if db.delete_trigger(self.bot.con, name):  # returns True if deleted; False if nothing to delete
+            await interaction.channel.send("Deleted!")
+
+    @app_commands.command(name="create", description="Create new trigger")
     async def new_trigger(self, interaction: discord.Interaction):
         # Send the modal with an instance of our `Feedback` class
         # Since modals require an interaction, they cannot be done as a response to a text command.
         # They can only be done as a response to either an application command or a button press.
         await interaction.response.send_modal(modals.AddTriggerModal(self.bot.con))
 
-    @app_commands.command(name="viewtrigger", description="See what's up with a trigger yo")
+    @app_commands.command(name="view", description="See what's up with a trigger yo")
     @app_commands.describe(query="Which trigger to look up")
+    async def view_trigger_slash(self, interaction: discord.Interaction, query: str):
+        await self.view_trigger(interaction, query)
+
     async def view_trigger(self, interaction: discord.Interaction, query: str):
         query = query.lower()  # we enforce a naming convention when creating new. Follow that here.
         trigger = db.fetch_from_db(self.bot.con, query)

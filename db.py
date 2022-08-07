@@ -62,6 +62,22 @@ bytes       BLOB
 """
 
 
+def get_all_trigger_names(db):
+    return [name[0] for name in db.execute("SELECT name FROM main")]
+
+
+def delete_trigger(db, name) -> bool:
+    """Delete a trigger by name. Returns false if no such trigger existed. Built to delete multiple if shared name."""
+    if 0 == db.execute("SELECT COUNT(trigger_id) FROM main WHERE name = ?", (name,)).fetchone()[0]:
+        return False  # nothing to do
+    for trigger_id in db.execute("SELECT trigger_id FROM main WHERE name = ?", (name,)):
+        db.execute("DELETE FROM outputs WHERE trigger_id = ?", trigger_id)
+        db.execute("DELETE FROM inputs WHERE trigger_id = ?", trigger_id)
+        db.execute("DELETE FROM main WHERE trigger_id = ?", trigger_id)
+    db.commit()
+    return True
+
+
 def get_trigger_outputs_for_msg(db, msg: str):
     to_return = []
     for trigger_id in get_triggers_id_for_msg(db, msg):
